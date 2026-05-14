@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введите породу на английском:");
-        String name = scanner.nextLine();
+        String name = scanner.nextLine().toLowerCase();
 
         CloseableHttpClient client = HttpClients.createDefault();
 
