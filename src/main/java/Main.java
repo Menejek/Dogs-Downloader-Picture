@@ -10,36 +10,43 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Введите породу на английском:");
-        String name = scanner.nextLine().toLowerCase();
+        String name = scanner.nextLine().trim().toLowerCase();
 
-        CloseableHttpClient client = HttpClients.createDefault();
+        if (name == null || name.isEmpty()) {
+            System.err.println("Нельзя найти то, чего нет!");
+        }
 
-        String url = "https://dog.ceo/api/breed/" + name + "/images/random";
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
 
-        HttpGet request = new HttpGet(url);
+            String url = "https://dog.ceo/api/breed/" + name + "/images/random";
 
-        CloseableHttpResponse response = client.execute(request);
+            HttpGet request = new HttpGet(url);
 
-        ObjectMapper mapper = new ObjectMapper();
+            CloseableHttpResponse response = client.execute(request);
 
-        DogAnswer dogAnswer = mapper.readValue(response.getEntity().getContent(), DogAnswer.class);
-        String messageDogAnswer = dogAnswer.message;
+            ObjectMapper mapper = new ObjectMapper();
 
-        if ("success".equals(dogAnswer.status)) {
-            request = new HttpGet(messageDogAnswer);
-            CloseableHttpResponse image = client.execute(request);
+            DogAnswer dogAnswer = mapper.readValue(response.getEntity().getContent(), DogAnswer.class);
+            String messageDogAnswer = dogAnswer.message;
 
-            String[] imageUrl = messageDogAnswer.split("/");
-            String nameFile = imageUrl[imageUrl.length - 1];
-            System.out.println(nameFile);
+            if ("success".equals(dogAnswer.status)) {
+                request = new HttpGet(messageDogAnswer);
+                CloseableHttpResponse image = client.execute(request);
 
-            FileOutputStream fos = new FileOutputStream("images/" + nameFile);
-            image.getEntity().writeTo(fos);
-        } else {
-            System.out.println("Такой пароды не существует!");
+                String[] imageUrl = messageDogAnswer.split("/");
+                String nameFile = imageUrl[imageUrl.length - 1];
+                System.out.println(nameFile);
+
+                FileOutputStream fos = new FileOutputStream("images/" + nameFile);
+                image.getEntity().writeTo(fos);
+            } else {
+                System.out.println("Такой пароды не существует!");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
